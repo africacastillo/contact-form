@@ -1,0 +1,1720 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Form</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    .success-message {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    
+    .radio-option input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    
+    .error-message {
+      color: #dc2626;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    
+    .field-error input,
+    .field-error select,
+    .field-error textarea {
+      border-color: #dc2626 !important;
+    }
+    
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background-color: #3b82f6;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: help;
+      margin-left: 6px;
+      position: relative;
+    }
+    
+    .tooltip {
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #1f2937;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      z-index: 1000;
+      display: none;
+      max-width: 300px;
+      width: 250px;
+      white-space: normal;
+    }
+    
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #1f2937;
+    }
+    
+    .info-icon:hover .tooltip {
+      display: block;
+    }
+    
+    .alert-box {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: start;
+      gap: 12px;
+    }
+    
+    .alert-warning {
+      background-color: #fef3c7;
+      border: 1px solid #fbbf24;
+      color: #92400e;
+    }
+    
+    .alert-info {
+      background-color: #dbeafe;
+      border: 1px solid #3b82f6;
+      color: #1e40af;
+    }
+    
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    
+    .popup-content {
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    
+    .popup-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #6b7280;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    
+    .popup-close:hover {
+      background-color: #f3f4f6;
+    }
+    
+    .conditional-field {
+      display: none;
+    }
+    
+    .rating-emoji-container {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin: 24px 0;
+    }
+    
+    .rating-emoji {
+      width: 44px;
+      height: 44px;
+      font-size: 32px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      filter: grayscale(100%);
+      opacity: 0.5;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    
+    .rating-emoji:hover {
+      transform: scale(1.2);
+      opacity: 0.8;
+    }
+    
+    .rating-emoji.selected {
+      filter: grayscale(0%);
+      opacity: 1;
+      transform: scale(1.3);
+    }
+    
+    .rating-emoji:focus {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
+    
+    .rating-tooltip {
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 1000;
+    }
+    
+    .rating-emoji:hover .rating-tooltip {
+      opacity: 1;
+    }
+    
+    .rating-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.8);
+    }
+    
+    .file-upload-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background-color: #f3f4f6;
+      border: 2px dashed #9ca3af;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .file-upload-label:hover {
+      background-color: #e5e7eb;
+      border-color: #6b7280;
+    }
+    
+    .file-list {
+      margin-top: 12px;
+      display: none;
+    }
+    
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background-color: #f9fafb;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    
+    .file-item button {
+      background: none;
+      border: none;
+      color: #dc2626;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0 8px;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="h-full w-full overflow-auto">
+   <div class="min-h-full flex items-center justify-center p-8">
+    <div class="w-full max-w-3xl">
+     <header class="text-center mb-10 fade-in">
+      <h1 id="form-title" class="text-5xl font-bold mb-4">Contact Us</h1>
+      <p id="form-subtitle" class="text-lg opacity-90">Please fill out the form below for any inquiries. Our customer service team will reply within the next <span id="sla-hours">24</span> hours.</p>
+     </header>
+     <main>
+      <form id="contact-form" class="space-y-6 fade-in"><!-- Full Name -->
+       <div><label for="full-name" class="block text-base font-medium mb-2"> <span id="full-name-label">Full Name</span> <span class="text-red-500">*</span> </label> <input type="text" id="full-name" name="full-name" required maxlength="100" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="John Doe">
+        <div class="error-message" id="full-name-error">
+         This field is required
+        </div>
+       </div><!-- Email -->
+       <div><label for="email" class="block text-base font-medium mb-2"> <span id="email-label">Email</span> <span class="text-red-500">*</span> </label> <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="john@example.com">
+        <p id="email-help" class="text-sm mt-2 opacity-75">Please use the same email as your application if you have already submitted one.</p>
+        <div class="error-message" id="email-error">
+         Please enter a valid email address
+        </div>
+       </div><!-- Country of Passport -->
+       <div><label for="country" class="block text-base font-medium mb-2"> <span id="country-label">Country of Passport</span> <span class="text-red-500">*</span> </label>
+        <div class="relative"><input type="text" id="country" name="country" required autocomplete="off" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="Type to search countries..."> <input type="hidden" id="country-code" name="country-code">
+         <div id="country-dropdown" class="absolute w-full bg-white border-2 rounded-lg mt-1 max-h-60 overflow-y-auto z-50 hidden shadow-lg"></div>
+        </div>
+        <div class="error-message" id="country-error">
+         Please select a country
+        </div>
+       </div><!-- Has Application -->
+       <div><label class="block text-base font-medium mb-3"> <span id="has-application-label">Do you have an existing application with us?</span> <span class="text-red-500">*</span> </label>
+        <div class="radio-group"><label class="radio-option"> <input type="radio" id="has-app-yes" name="has-application" value="yes" required> <span>Yes</span> </label> <label class="radio-option"> <input type="radio" id="has-app-no" name="has-application" value="no"> <span>No</span> </label>
+        </div>
+        <div class="error-message" id="has-application-error">
+         Please select an option
+        </div>
+       </div><!-- Reason for Contact -->
+       <div><label for="reason" class="block text-base font-medium mb-2"> <span id="reason-label">Reason for Contact</span> <span class="text-red-500">*</span> </label> <select id="reason" name="reason" required class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2"> <option value="">Select a reason...</option> </select>
+        <div class="error-message" id="reason-error">
+         Please select a reason
+        </div>
+       </div><!-- Application Issues Info Alert -->
+       <div id="application-issues-alert" class="conditional-field alert-info">
+        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewbox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        <div>
+         <p class="font-semibold mb-2">Important Information</p>
+         <p class="text-sm">If you submitted your travel document application and realized you made a mistake, or if your approved travel document contains incorrect information, please submit this form so that we can correct the information.</p>
+         <p class="text-sm mt-2">If you have submitted an application and need to provide additional information or documentation, check your inbox for an email from info@XXXX and follow the instructions. Please contact us if you have not received the email.</p>
+        </div>
+       </div><!-- Refund Warning Alert -->
+       <div id="refund-warning-alert" class="conditional-field alert-warning">
+        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewbox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <div>
+         <p class="font-semibold">Warning: Your travel document may not be processed if a refund is requested.</p>
+        </div>
+       </div><!-- Invoice Fields -->
+       <div id="invoice-fields" class="conditional-field space-y-6 p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
+        <h3 class="text-xl font-semibold mb-4">Invoice Information</h3>
+        <div><label for="invoice-address" class="block text-base font-medium mb-2"> Address <span class="text-red-500">*</span> </label> <input type="text" id="invoice-address" name="invoice-address" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="123 Main Street">
+         <div class="error-message" id="invoice-address-error">
+          This field is required
+         </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div><label for="invoice-zip" class="block text-base font-medium mb-2"> Zip Code <span class="text-red-500">*</span> </label> <input type="text" id="invoice-zip" name="invoice-zip" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="12345">
+          <div class="error-message" id="invoice-zip-error">
+           This field is required
+          </div>
+         </div>
+         <div><label for="invoice-state" class="block text-base font-medium mb-2"> State/Province/District <span class="text-red-500">*</span> </label> <input type="text" id="invoice-state" name="invoice-state" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="California">
+          <div class="error-message" id="invoice-state-error">
+           This field is required
+          </div>
+         </div>
+        </div>
+        <div><label for="invoice-city" class="block text-base font-medium mb-2"> Village/Town/City <span class="text-red-500">*</span> </label> <input type="text" id="invoice-city" name="invoice-city" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="Los Angeles">
+         <div class="error-message" id="invoice-city-error">
+          This field is required
+         </div>
+        </div>
+        <div><label for="invoice-country" class="block text-base font-medium mb-2"> Country <span class="text-red-500">*</span> </label> <select id="invoice-country" name="invoice-country" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2"> <option value="">Select a country...</option> <option value="US">United States</option> <option value="GB">United Kingdom</option> <option value="CA">Canada</option> <option value="AU">Australia</option> <option value="DE">Germany</option> <option value="FR">France</option> <option value="ES">Spain</option> <option value="IT">Italy</option> </select>
+         <div class="error-message" id="invoice-country-error">
+          Please select a country
+         </div>
+        </div>
+        <div><label for="invoice-transaction-id" class="block text-base font-medium mb-2"> Transaction ID <span class="text-red-500">*</span> <span class="info-icon"> ? <span class="tooltip">The Transaction ID is a unique identifier for each transaction. It is automatically sent to the email address provided during application when the payment is completed.</span> </span> </label> <input type="text" id="invoice-transaction-id" name="invoice-transaction-id" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="TXN-123456789">
+         <div class="error-message" id="invoice-transaction-id-error">
+          This field is required
+         </div>
+        </div>
+       </div><!-- Refund Fields -->
+       <div id="refund-fields" class="conditional-field space-y-6 p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+         <h3 class="text-xl font-semibold">Refund Request</h3><a href="/refund-policy" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm flex items-center gap-1"> View Refund Policy 
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg></a>
+        </div>
+        <p class="text-sm text-gray-600">Please provide the required details below to help us process your request as soon as possible.</p>
+        <div><label for="refund-reason" class="block text-base font-medium mb-2"> Reason for Refund Request <span class="text-red-500">*</span> </label> <select id="refund-reason" name="refund-reason" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2"> <option value="">Select a reason...</option> <option value="ChangeOfPlans">Change of plans / No longer needed</option> <option value="ServiceNotDelivered">Service not delivered on time or not received</option> <option value="ApplicationDenied">My application was denied</option> <option value="ErrorInApplication">Error in application data / Unable to provide documents</option> <option value="CouldNotBeProcessed">My application could not be processed</option> <option value="OtherReason">Other reason</option> </select>
+         <div class="error-message" id="refund-reason-error">
+          Please select a reason
+         </div>
+        </div>
+        <div><label for="refund-transaction-id" class="block text-base font-medium mb-2"> Transaction ID <span class="text-red-500">*</span> <span class="info-icon"> ? <span class="tooltip">The Transaction ID is a unique identifier for each transaction. It is automatically sent to the email address provided during application when the payment is completed.</span> </span> </label> <input type="text" id="refund-transaction-id" name="refund-transaction-id" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="123456ab7cde89123456fg78h901x234">
+         <div class="error-message" id="refund-transaction-id-error">
+          This field is required
+         </div>
+        </div>
+        <div id="refund-specify-field" class="conditional-field"><label for="refund-specify" class="block text-base font-medium mb-2"> Please specify the reason for your refund request <span class="text-red-500">*</span> </label> <textarea id="refund-specify" name="refund-specify" rows="4" maxlength="300" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 resize-none" placeholder="Please explain your situation..."></textarea>
+         <div class="text-sm text-gray-500 mt-1 text-right"><span id="refund-specify-count">0</span>/300
+         </div>
+         <div class="error-message" id="refund-specify-error">
+          This field is required
+         </div>
+        </div>
+       </div><!-- Passport Number (conditional) -->
+       <div id="passport-field" style="display: none;"><label for="passport" class="block text-base font-medium mb-2"> <span id="passport-label">Passport Number</span> <span class="text-red-500">*</span> </label> <input type="text" id="passport" name="passport" maxlength="20" pattern="[a-zA-Z0-9]*" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2" placeholder="A12345678">
+        <div class="error-message" id="passport-error">
+         Please enter a valid passport number (letters and numbers only)
+        </div>
+       </div><!-- Message -->
+       <div><label for="message" class="block text-base font-medium mb-2"> <span id="message-label">Message</span> <span id="message-required" class="text-red-500">*</span> </label> <textarea id="message" name="message" required rows="6" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 resize-none" placeholder="Please provide details about your inquiry..."></textarea>
+        <div class="error-message" id="message-error">
+         This field is required
+        </div>
+       </div><!-- Feedback Section with Rating -->
+       <div class="space-y-6 p-6 bg-gray-50 rounded-lg border-2">
+        <div>
+         <p class="text-lg font-semibold mb-4">We are committed to providing the most efficient online travel document assistance.</p><label class="block text-base font-medium mb-3"> How satisfied are you with our service so far? </label>
+         <p class="text-sm text-gray-600 mb-3">Your feedback helps us improve</p>
+         <div class="rating-emoji-container" role="radiogroup" aria-label="Rate your satisfaction">
+          <div class="rating-emoji" role="radio" aria-checked="false" aria-label="Very Dissatisfied" tabindex="0" data-rating="1" onclick="selectRating(1)" onkeypress="if(event.key==='Enter' || event.key===' ') selectRating(1)">
+           😡 <span class="rating-tooltip">Very Dissatisfied</span>
+          </div>
+          <div class="rating-emoji" role="radio" aria-checked="false" aria-label="Dissatisfied" tabindex="0" data-rating="2" onclick="selectRating(2)" onkeypress="if(event.key==='Enter' || event.key===' ') selectRating(2)">
+           😟 <span class="rating-tooltip">Dissatisfied</span>
+          </div>
+          <div class="rating-emoji" role="radio" aria-checked="false" aria-label="Neutral" tabindex="0" data-rating="3" onclick="selectRating(3)" onkeypress="if(event.key==='Enter' || event.key===' ') selectRating(3)">
+           😐 <span class="rating-tooltip">Neutral</span>
+          </div>
+          <div class="rating-emoji" role="radio" aria-checked="false" aria-label="Satisfied" tabindex="0" data-rating="4" onclick="selectRating(4)" onkeypress="if(event.key==='Enter' || event.key===' ') selectRating(4)">
+           🙂 <span class="rating-tooltip">Satisfied</span>
+          </div>
+          <div class="rating-emoji" role="radio" aria-checked="false" aria-label="Very Satisfied" tabindex="0" data-rating="5" onclick="selectRating(5)" onkeypress="if(event.key==='Enter' || event.key===' ') selectRating(5)">
+           😍 <span class="rating-tooltip">Very Satisfied</span>
+          </div>
+         </div>
+         <p id="rating-thanks-form" class="text-sm text-green-600 opacity-0 transition-opacity duration-300 mt-2 text-center">Thank you for your feedback! ✨</p>
+        </div>
+        <div><label for="improvement-suggestions-form" class="block text-base font-medium mb-2"> How would you suggest to improve our application process? </label> <textarea id="improvement-suggestions-form" name="improvement-suggestions" rows="4" maxlength="500" class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 resize-none" placeholder="Share your suggestions here (optional)..."></textarea>
+         <div class="flex justify-between items-center mt-1"><span class="text-xs text-gray-500">Optional</span> <span class="text-xs text-gray-500"><span id="improvement-count-form">0</span>/500</span>
+         </div>
+        </div>
+       </div><!-- How did you hear about us -->
+       <div><label for="hear-about-us" class="block text-base font-medium mb-2"> How did you hear about us? <span class="text-red-500">*</span> </label> <select id="hear-about-us" name="hear-about-us" required class="w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2"> <option value="">Select an option...</option> <option value="Search">Search</option> <option value="SocialMedia">Social Media</option> <option value="Friends">Friends</option> <option value="AIChat">AI Chat</option> <option value="Ads">Ads</option> <option value="Other">Other</option> </select>
+        <div class="error-message" id="hear-about-us-error">
+         Please select an option
+        </div>
+       </div><!-- File Upload (Optional for all) -->
+       <div><label class="block text-base font-medium mb-2"> Attach Document/Passport (Optional) </label> <input type="file" id="file-upload" name="file-upload" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;"> <label for="file-upload" class="file-upload-label">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+         </svg><span>Choose files or drag here</span> </label>
+        <p class="text-sm text-gray-500 mt-2">Accepted formats: PDF, JPG, PNG (Max 5MB per file)</p>
+        <div id="file-list" class="file-list"></div>
+       </div><!-- Security Verification -->
+       <div><label class="block text-base font-medium mb-3"> <span id="security-label">Security Verification</span> <span class="text-red-500">*</span> </label>
+        <div class="bg-gray-100 border-2 rounded-lg p-6 flex items-center justify-between">
+         <div class="flex items-center gap-3"><input type="checkbox" id="captcha-check" name="captcha" required class="w-6 h-6 cursor-pointer"> <label for="captcha-check" class="text-base cursor-pointer select-none"> I'm not a robot </label>
+         </div>
+         <div class="flex flex-col items-center">
+          <svg class="w-10 h-10 text-blue-600" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+          </svg>
+          <p class="text-xs text-gray-500 mt-1">reCAPTCHA</p>
+         </div>
+        </div>
+        <div class="error-message" id="captcha-error">
+         Please verify that you are not a robot
+        </div>
+       </div><!-- Privacy Policy Checkbox -->
+       <div>
+        <div class="flex items-start gap-3"><input type="checkbox" id="privacy-policy" name="privacy-policy" required class="w-5 h-5 mt-1 cursor-pointer flex-shrink-0"> <label for="privacy-policy" class="text-base cursor-pointer select-none"> <span id="privacy-label">I have read and understood the</span> <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" class="font-semibold hover:underline ml-1"> privacy policy </a> <span class="text-red-500">*</span> </label>
+        </div>
+        <div class="error-message ml-8" id="privacy-error">
+         You must accept the privacy policy to continue
+        </div>
+       </div><button type="submit" id="submit-button" class="w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4"> Send </button>
+      </form>
+      <div id="success-message" class="hidden mt-8 p-6 rounded-lg success-message text-center fade-in">
+       <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+       </svg>
+       <h3 class="text-2xl font-bold mb-4">Form Submitted Successfully!</h3>
+       <div id="success-message-content">
+        <p class="text-lg opacity-90 mb-3">Thank you for contacting us. Our customer service team will reply within the next <span id="success-sla-hours">24</span> hours.</p>
+       </div>
+       <p class="text-base opacity-85 mb-6">You will receive an email within a few minutes confirming that your message has been sent. If you do not receive the confirmation email, please contact us again as you may have entered a wrong email address.</p><!-- Satisfaction Rating with Emojis -->
+       <div class="border-t border-white border-opacity-30 pt-6 mt-6">
+  </div><!-- Payment Issues Popup -->
+  <div id="payment-popup" class="popup-overlay">
+   <div class="popup-content"><button class="popup-close" onclick="closePopup('payment-popup')">×</button>
+    <h3 class="text-2xl font-bold mb-4">Payment Issue Help</h3>
+    <p class="mb-4">Before submitting your inquiry, please try the following solutions:</p>
+    <ul class="list-disc pl-6 space-y-2 mb-4">
+     <li>Check that your card has sufficient funds</li>
+     <li>Verify your card details are entered correctly</li>
+     <li>Try using a different payment method or card</li>
+     <li>Clear your browser cache and cookies</li>
+     <li>Try a different browser or device</li>
+    </ul>
+    <p class="mb-4 font-semibold">If the problem persists, please submit this form and attach a screenshot of the error message if possible.</p><button onclick="closePopup('payment-popup')" class="w-full py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"> Got it </button>
+   </div>
+  </div><!-- General Inquiry Popup -->
+  <div id="faq-popup" class="popup-overlay">
+   <div class="popup-content"><button class="popup-close" onclick="closePopup('faq-popup')">×</button>
+    <h3 class="text-2xl font-bold mb-4">Before You Contact Us</h3>
+    <p class="mb-4">You might find the answer to your question faster by visiting our FAQ section:</p>
+    <div class="space-y-3 mb-6"><a href="/faq" target="_blank" rel="noopener noreferrer" class="block p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+      <div class="flex items-center justify-between"><span class="font-semibold text-blue-900">Visit FAQ Page</span>
+       <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+       </svg>
+      </div></a> <a href="/visa-information" target="_blank" rel="noopener noreferrer" class="block p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+      <div class="flex items-center justify-between"><span class="font-semibold text-blue-900">Visa Information</span>
+       <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+       </svg>
+      </div></a>
+    </div><button onclick="closePopup('faq-popup')" class="w-full py-3 px-6 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"> Continue with Contact Form </button>
+   </div>
+  </div><!-- Payment Keyword Detection Popup -->
+  <div id="payment-keyword-popup" class="popup-overlay">
+   <div class="popup-content"><button class="popup-close" onclick="closePopup('payment-keyword-popup')">×</button>
+    <div class="flex items-start gap-4 mb-4">
+     <svg class="w-12 h-12 text-yellow-500 flex-shrink-0" fill="currentColor" viewbox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+     </svg>
+     <div>
+      <h3 class="text-2xl font-bold mb-2">It seems you have a payment issue</h3>
+      <p class="text-gray-700 mb-4">We detected that your message might be related to a payment problem.</p>
+      <p class="text-gray-700 mb-4">Would you like to change the contact reason to <strong>"Payment Issues"</strong> to receive more specific assistance?</p>
+     </div>
+    </div>
+    <div class="flex gap-3"><button onclick="changeToPaymentIssue()" class="flex-1 py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"> Yes, change to Payment Issues </button> <button onclick="closePopup('payment-keyword-popup')" class="flex-1 py-3 px-6 bg-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-400 transition-colors"> No, continue as is </button>
+    </div>
+   </div>
+  </div>
+  <script>
+    // Country list for searchable dropdown
+    const countries = [
+      { code: "AF", name: "Afghanistan" },
+      { code: "AL", name: "Albania" },
+      { code: "DZ", name: "Algeria" },
+      { code: "AD", name: "Andorra" },
+      { code: "AO", name: "Angola" },
+      { code: "AR", name: "Argentina" },
+      { code: "AM", name: "Armenia" },
+      { code: "AU", name: "Australia" },
+      { code: "AT", name: "Austria" },
+      { code: "AZ", name: "Azerbaijan" },
+      { code: "BS", name: "Bahamas" },
+      { code: "BH", name: "Bahrain" },
+      { code: "BD", name: "Bangladesh" },
+      { code: "BB", name: "Barbados" },
+      { code: "BY", name: "Belarus" },
+      { code: "BE", name: "Belgium" },
+      { code: "BZ", name: "Belize" },
+      { code: "BJ", name: "Benin" },
+      { code: "BT", name: "Bhutan" },
+      { code: "BO", name: "Bolivia" },
+      { code: "BA", name: "Bosnia and Herzegovina" },
+      { code: "BW", name: "Botswana" },
+      { code: "BR", name: "Brazil" },
+      { code: "BN", name: "Brunei" },
+      { code: "BG", name: "Bulgaria" },
+      { code: "BF", name: "Burkina Faso" },
+      { code: "BI", name: "Burundi" },
+      { code: "KH", name: "Cambodia" },
+      { code: "CM", name: "Cameroon" },
+      { code: "CA", name: "Canada" },
+      { code: "CV", name: "Cape Verde" },
+      { code: "CF", name: "Central African Republic" },
+      { code: "TD", name: "Chad" },
+      { code: "CL", name: "Chile" },
+      { code: "CN", name: "China" },
+      { code: "CO", name: "Colombia" },
+      { code: "KM", name: "Comoros" },
+      { code: "CG", name: "Congo" },
+      { code: "CR", name: "Costa Rica" },
+      { code: "HR", name: "Croatia" },
+      { code: "CU", name: "Cuba" },
+      { code: "CY", name: "Cyprus" },
+      { code: "CZ", name: "Czech Republic" },
+      { code: "DK", name: "Denmark" },
+      { code: "DJ", name: "Djibouti" },
+      { code: "DM", name: "Dominica" },
+      { code: "DO", name: "Dominican Republic" },
+      { code: "EC", name: "Ecuador" },
+      { code: "EG", name: "Egypt" },
+      { code: "SV", name: "El Salvador" },
+      { code: "GQ", name: "Equatorial Guinea" },
+      { code: "ER", name: "Eritrea" },
+      { code: "EE", name: "Estonia" },
+      { code: "ET", name: "Ethiopia" },
+      { code: "FJ", name: "Fiji" },
+      { code: "FI", name: "Finland" },
+      { code: "FR", name: "France" },
+      { code: "GA", name: "Gabon" },
+      { code: "GM", name: "Gambia" },
+      { code: "GE", name: "Georgia" },
+      { code: "DE", name: "Germany" },
+      { code: "GH", name: "Ghana" },
+      { code: "GR", name: "Greece" },
+      { code: "GD", name: "Grenada" },
+      { code: "GT", name: "Guatemala" },
+      { code: "GN", name: "Guinea" },
+      { code: "GW", name: "Guinea-Bissau" },
+      { code: "GY", name: "Guyana" },
+      { code: "HT", name: "Haiti" },
+      { code: "HN", name: "Honduras" },
+      { code: "HU", name: "Hungary" },
+      { code: "IS", name: "Iceland" },
+      { code: "IN", name: "India" },
+      { code: "ID", name: "Indonesia" },
+      { code: "IR", name: "Iran" },
+      { code: "IQ", name: "Iraq" },
+      { code: "IE", name: "Ireland" },
+      { code: "IL", name: "Israel" },
+      { code: "IT", name: "Italy" },
+      { code: "JM", name: "Jamaica" },
+      { code: "JP", name: "Japan" },
+      { code: "JO", name: "Jordan" },
+      { code: "KZ", name: "Kazakhstan" },
+      { code: "KE", name: "Kenya" },
+      { code: "KI", name: "Kiribati" },
+      { code: "KW", name: "Kuwait" },
+      { code: "KG", name: "Kyrgyzstan" },
+      { code: "LA", name: "Laos" },
+      { code: "LV", name: "Latvia" },
+      { code: "LB", name: "Lebanon" },
+      { code: "LS", name: "Lesotho" },
+      { code: "LR", name: "Liberia" },
+      { code: "LY", name: "Libya" },
+      { code: "LI", name: "Liechtenstein" },
+      { code: "LT", name: "Lithuania" },
+      { code: "LU", name: "Luxembourg" },
+      { code: "MK", name: "Macedonia" },
+      { code: "MG", name: "Madagascar" },
+      { code: "MW", name: "Malawi" },
+      { code: "MY", name: "Malaysia" },
+      { code: "MV", name: "Maldives" },
+      { code: "ML", name: "Mali" },
+      { code: "MT", name: "Malta" },
+      { code: "MH", name: "Marshall Islands" },
+      { code: "MR", name: "Mauritania" },
+      { code: "MU", name: "Mauritius" },
+      { code: "MX", name: "Mexico" },
+      { code: "FM", name: "Micronesia" },
+      { code: "MD", name: "Moldova" },
+      { code: "MC", name: "Monaco" },
+      { code: "MN", name: "Mongolia" },
+      { code: "ME", name: "Montenegro" },
+      { code: "MA", name: "Morocco" },
+      { code: "MZ", name: "Mozambique" },
+      { code: "MM", name: "Myanmar" },
+      { code: "NA", name: "Namibia" },
+      { code: "NR", name: "Nauru" },
+      { code: "NP", name: "Nepal" },
+      { code: "NL", name: "Netherlands" },
+      { code: "NZ", name: "New Zealand" },
+      { code: "NI", name: "Nicaragua" },
+      { code: "NE", name: "Niger" },
+      { code: "NG", name: "Nigeria" },
+      { code: "KP", name: "North Korea" },
+      { code: "NO", name: "Norway" },
+      { code: "OM", name: "Oman" },
+      { code: "PK", name: "Pakistan" },
+      { code: "PW", name: "Palau" },
+      { code: "PA", name: "Panama" },
+      { code: "PG", name: "Papua New Guinea" },
+      { code: "PY", name: "Paraguay" },
+      { code: "PE", name: "Peru" },
+      { code: "PH", name: "Philippines" },
+      { code: "PL", name: "Poland" },
+      { code: "PT", name: "Portugal" },
+      { code: "QA", name: "Qatar" },
+      { code: "RO", name: "Romania" },
+      { code: "RU", name: "Russia" },
+      { code: "RW", name: "Rwanda" },
+      { code: "KN", name: "Saint Kitts and Nevis" },
+      { code: "LC", name: "Saint Lucia" },
+      { code: "VC", name: "Saint Vincent and the Grenadines" },
+      { code: "WS", name: "Samoa" },
+      { code: "SM", name: "San Marino" },
+      { code: "ST", name: "Sao Tome and Principe" },
+      { code: "SA", name: "Saudi Arabia" },
+      { code: "SN", name: "Senegal" },
+      { code: "RS", name: "Serbia" },
+      { code: "SC", name: "Seychelles" },
+      { code: "SL", name: "Sierra Leone" },
+      { code: "SG", name: "Singapore" },
+      { code: "SK", name: "Slovakia" },
+      { code: "SI", name: "Slovenia" },
+      { code: "SB", name: "Solomon Islands" },
+      { code: "SO", name: "Somalia" },
+      { code: "ZA", name: "South Africa" },
+      { code: "KR", name: "South Korea" },
+      { code: "SS", name: "South Sudan" },
+      { code: "ES", name: "Spain" },
+      { code: "LK", name: "Sri Lanka" },
+      { code: "SD", name: "Sudan" },
+      { code: "SR", name: "Suriname" },
+      { code: "SZ", name: "Swaziland" },
+      { code: "SE", name: "Sweden" },
+      { code: "CH", name: "Switzerland" },
+      { code: "SY", name: "Syria" },
+      { code: "TW", name: "Taiwan" },
+      { code: "TJ", name: "Tajikistan" },
+      { code: "TZ", name: "Tanzania" },
+      { code: "TH", name: "Thailand" },
+      { code: "TL", name: "Timor-Leste" },
+      { code: "TG", name: "Togo" },
+      { code: "TO", name: "Tonga" },
+      { code: "TT", name: "Trinidad and Tobago" },
+      { code: "TN", name: "Tunisia" },
+      { code: "TR", name: "Turkey" },
+      { code: "TM", name: "Turkmenistan" },
+      { code: "TV", name: "Tuvalu" },
+      { code: "UG", name: "Uganda" },
+      { code: "UA", name: "Ukraine" },
+      { code: "AE", name: "United Arab Emirates" },
+      { code: "GB", name: "United Kingdom" },
+      { code: "US", name: "United States" },
+      { code: "UY", name: "Uruguay" },
+      { code: "UZ", name: "Uzbekistan" },
+      { code: "VU", name: "Vanuatu" },
+      { code: "VA", name: "Vatican City" },
+      { code: "VE", name: "Venezuela" },
+      { code: "VN", name: "Vietnam" },
+      { code: "YE", name: "Yemen" },
+      { code: "ZM", name: "Zambia" },
+      { code: "ZW", name: "Zimbabwe" }
+    ];
+  
+    const defaultConfig = {
+      background_color: "#f8f9fa",
+      surface_color: "#ffffff",
+      text_color: "#1a202c",
+      primary_action_color: "#667eea",
+      secondary_action_color: "#764ba2",
+      form_title: "Contact Us",
+      form_subtitle: "Please fill out the form below for any inquiries. Our customer service team will reply within the next",
+      sla_hours: "24",
+      full_name_label: "Full Name",
+      email_label: "Email",
+      email_help: "Please use the same email as your application if you have already submitted one.",
+      country_label: "Country of Passport",
+      passport_label: "Passport Number",
+      has_application_label: "Do you have an existing application with us?",
+      reason_label: "Reason for Contact",
+      message_label: "Message",
+      security_label: "Security Verification",
+      privacy_label: "I have read and understood the",
+      submit_button: "Send",
+      font_family: "system-ui",
+      font_size: 16
+    };
+
+    const reasonsWithApp = [
+      { value: "ApplicationInformationUpdate", label: "Correct/Update Application" },
+      { value: "CheckVisaStatus", label: "Check Application Status" },
+      { value: "PaymentIssues", label: "Payment Issues" },
+      { value: "ApplicationIssues", label: "Application Issues" },
+      { value: "InvoiceRequest", label: "Request an Invoice" },
+      { value: "RefundRequest", label: "Request a Refund" },
+      { value: "RefundStatus", label: "Refund Status" },
+      { value: "VisaInformation", label: "General Inquiry" },
+      { value: "OtherReason", label: "Other Reason" }
+    ];
+
+    const reasonsWithoutApp = [
+      { value: "PaymentIssues", label: "Payment Issues" },
+      { value: "ApplicationIssues", label: "Application Issues" },
+      { value: "VisaInformation", label: "General Inquiry" },
+      { value: "OtherReason", label: "Other Reason" }
+    ];
+
+    let uploadedFiles = [];
+
+    async function onConfigChange(config) {
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const fontFamily = `${customFont}, ${baseFontStack}`;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryActionColor = config.primary_action_color || defaultConfig.primary_action_color;
+      const secondaryActionColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+      
+      document.getElementById('app-wrapper').style.backgroundColor = backgroundColor;
+      document.getElementById('app-wrapper').style.color = textColor;
+      
+      document.getElementById('form-title').textContent = config.form_title || defaultConfig.form_title;
+      document.getElementById('form-title').style.fontFamily = fontFamily;
+      document.getElementById('form-title').style.fontSize = `${baseSize * 2}px`;
+      document.getElementById('form-title').style.color = textColor;
+      
+      const subtitleElement = document.getElementById('form-subtitle');
+      const slaHours = config.sla_hours || defaultConfig.sla_hours;
+      subtitleElement.innerHTML = `${config.form_subtitle || defaultConfig.form_subtitle} <span id="sla-hours">${slaHours}</span> hours.`;
+      subtitleElement.style.fontFamily = fontFamily;
+      subtitleElement.style.fontSize = `${baseSize * 1.125}px`;
+      subtitleElement.style.color = textColor;
+      
+      document.getElementById('full-name-label').textContent = config.full_name_label || defaultConfig.full_name_label;
+      document.getElementById('full-name-label').style.fontFamily = fontFamily;
+      document.getElementById('full-name-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('full-name-label').style.color = textColor;
+      
+      document.getElementById('email-label').textContent = config.email_label || defaultConfig.email_label;
+      document.getElementById('email-label').style.fontFamily = fontFamily;
+      document.getElementById('email-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('email-label').style.color = textColor;
+      
+      document.getElementById('email-help').textContent = config.email_help || defaultConfig.email_help;
+      document.getElementById('email-help').style.fontFamily = fontFamily;
+      document.getElementById('email-help').style.fontSize = `${baseSize * 0.875}px`;
+      
+      document.getElementById('country-label').textContent = config.country_label || defaultConfig.country_label;
+      document.getElementById('country-label').style.fontFamily = fontFamily;
+      document.getElementById('country-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('country-label').style.color = textColor;
+      
+      document.getElementById('passport-label').textContent = config.passport_label || defaultConfig.passport_label;
+      document.getElementById('passport-label').style.fontFamily = fontFamily;
+      document.getElementById('passport-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('passport-label').style.color = textColor;
+      
+      document.getElementById('has-application-label').textContent = config.has_application_label || defaultConfig.has_application_label;
+      document.getElementById('has-application-label').style.fontFamily = fontFamily;
+      document.getElementById('has-application-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('has-application-label').style.color = textColor;
+      
+      document.getElementById('reason-label').textContent = config.reason_label || defaultConfig.reason_label;
+      document.getElementById('reason-label').style.fontFamily = fontFamily;
+      document.getElementById('reason-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('reason-label').style.color = textColor;
+      
+      document.getElementById('message-label').textContent = config.message_label || defaultConfig.message_label;
+      document.getElementById('message-label').style.fontFamily = fontFamily;
+      document.getElementById('message-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('message-label').style.color = textColor;
+      
+      document.getElementById('security-label').textContent = config.security_label || defaultConfig.security_label;
+      document.getElementById('security-label').style.fontFamily = fontFamily;
+      document.getElementById('security-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('security-label').style.color = textColor;
+      
+      document.getElementById('privacy-label').textContent = config.privacy_label || defaultConfig.privacy_label;
+      document.getElementById('privacy-label').style.fontFamily = fontFamily;
+      document.getElementById('privacy-label').style.fontSize = `${baseSize}px`;
+      document.getElementById('privacy-label').style.color = textColor;
+      
+      const labels = document.querySelectorAll('label');
+      labels.forEach(label => {
+        label.style.fontFamily = fontFamily;
+      });
+      
+      const inputs = document.querySelectorAll('input, textarea, select');
+      inputs.forEach(input => {
+        input.style.backgroundColor = surfaceColor;
+        input.style.borderColor = secondaryActionColor;
+        input.style.color = textColor;
+        input.style.fontFamily = fontFamily;
+        input.style.fontSize = `${baseSize}px`;
+      });
+      
+      const submitButton = document.getElementById('submit-button');
+      submitButton.textContent = config.submit_button || defaultConfig.submit_button;
+      submitButton.style.backgroundColor = primaryActionColor;
+      submitButton.style.color = surfaceColor;
+      submitButton.style.fontFamily = fontFamily;
+      submitButton.style.fontSize = `${baseSize * 1.125}px`;
+      
+      const successMessage = document.getElementById('success-message');
+      successMessage.style.color = surfaceColor;
+      const successTitle = successMessage.querySelector('h3');
+      const successText = successMessage.querySelector('p');
+      if (successTitle) {
+        successTitle.style.fontFamily = fontFamily;
+        successTitle.style.fontSize = `${baseSize * 1.5}px`;
+      }
+      if (successText) {
+        successText.style.fontFamily = fontFamily;
+        successText.style.fontSize = `${baseSize * 1.125}px`;
+      }
+      
+      document.getElementById('success-sla-hours').textContent = slaHours;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.surface_color || defaultConfig.surface_color,
+            set: (value) => {
+              config.surface_color = value;
+              window.elementSdk.setConfig({ surface_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.primary_action_color || defaultConfig.primary_action_color,
+            set: (value) => {
+              config.primary_action_color = value;
+              window.elementSdk.setConfig({ primary_action_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+            set: (value) => {
+              config.secondary_action_color = value;
+              window.elementSdk.setConfig({ secondary_action_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => {
+            config.font_family = value;
+            window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => {
+            config.font_size = value;
+            window.elementSdk.setConfig({ font_size: value });
+          }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["form_title", config.form_title || defaultConfig.form_title],
+        ["form_subtitle", config.form_subtitle || defaultConfig.form_subtitle],
+        ["sla_hours", config.sla_hours || defaultConfig.sla_hours],
+        ["full_name_label", config.full_name_label || defaultConfig.full_name_label],
+        ["email_label", config.email_label || defaultConfig.email_label],
+        ["email_help", config.email_help || defaultConfig.email_help],
+        ["country_label", config.country_label || defaultConfig.country_label],
+        ["passport_label", config.passport_label || defaultConfig.passport_label],
+        ["has_application_label", config.has_application_label || defaultConfig.has_application_label],
+        ["reason_label", config.reason_label || defaultConfig.reason_label],
+        ["message_label", config.message_label || defaultConfig.message_label],
+        ["security_label", config.security_label || defaultConfig.security_label],
+        ["privacy_label", config.privacy_label || defaultConfig.privacy_label],
+        ["submit_button", config.submit_button || defaultConfig.submit_button]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+
+    // Popup functions
+    function closePopup(popupId) {
+      document.getElementById(popupId).style.display = 'none';
+    }
+
+    function showPopup(popupId) {
+      document.getElementById(popupId).style.display = 'flex';
+    }
+
+    // Country searchable dropdown functionality
+    const countryInput = document.getElementById('country');
+    const countryCodeInput = document.getElementById('country-code');
+    const countryDropdown = document.getElementById('country-dropdown');
+    let selectedCountry = null;
+
+    function filterCountries(searchTerm) {
+      const term = searchTerm.toLowerCase();
+      return countries.filter(country => 
+        country.name.toLowerCase().includes(term) || 
+        country.code.toLowerCase().includes(term)
+      );
+    }
+
+    function showCountryDropdown(filteredCountries) {
+      if (filteredCountries.length === 0) {
+        countryDropdown.innerHTML = '<div class="px-4 py-3 text-gray-500">No countries found</div>';
+        countryDropdown.classList.remove('hidden');
+        return;
+      }
+// Validación al salir del campo (Blur)
+countryInput.addEventListener('blur', function() {
+    // Pequeño retraso para permitir que el clic en el dropdown se procese primero
+    setTimeout(() => {
+        const isValidCountryName = countries.some(c => c.name === this.value.trim());
+        
+        if (this.value.trim() !== "" && !isValidCountryName) {
+            this.parentElement.parentElement.classList.add('field-error');
+            const errorMsg = document.getElementById('country-error');
+            errorMsg.textContent = "Please select a valid country from the list";
+            errorMsg.style.display = 'block';
+            countryCodeInput.value = ''; // Limpiamos el código si el nombre es inválido
+        }
+    }, 200);
+});
+      countryDropdown.innerHTML = filteredCountries.map(country => `
+        <div class="country-option px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors" data-code="${country.code}" data-name="${country.name}">
+          ${country.name}
+        </div>
+      `).join('');
+      
+      countryDropdown.classList.remove('hidden');
+      
+      // Add click handlers to options
+      document.querySelectorAll('.country-option').forEach(option => {
+        option.addEventListener('click', function() {
+          selectCountry(this.dataset.code, this.dataset.name);
+        });
+      });
+    }
+
+    function selectCountry(code, name) {
+      selectedCountry = { code, name };
+      countryInput.value = name;
+      countryCodeInput.value = code;
+      countryDropdown.classList.add('hidden');
+      countryInput.parentElement.parentElement.classList.remove('field-error');
+      document.getElementById('country-error').style.display = 'none';
+    }
+
+    countryInput.addEventListener('input', function() {
+      const searchTerm = this.value.trim();
+      
+      if (searchTerm.length === 0) {
+        countryDropdown.classList.add('hidden');
+        selectedCountry = null;
+        countryCodeInput.value = '';
+        return;
+      }
+      
+      // Reset selection if user modifies the input
+      if (selectedCountry && this.value !== selectedCountry.name) {
+        selectedCountry = null;
+        countryCodeInput.value = '';
+      }
+      
+      const filtered = filterCountries(searchTerm);
+      showCountryDropdown(filtered);
+    });
+
+    countryInput.addEventListener('focus', function() {
+      if (this.value.trim().length > 0) {
+        const filtered = filterCountries(this.value.trim());
+        showCountryDropdown(filtered);
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!countryInput.contains(e.target) && !countryDropdown.contains(e.target)) {
+        countryDropdown.classList.add('hidden');
+      }
+    });
+
+    // Keyboard navigation for country dropdown
+    countryInput.addEventListener('keydown', function(e) {
+      const options = countryDropdown.querySelectorAll('.country-option');
+      const activeOption = countryDropdown.querySelector('.country-option.bg-gray-100');
+      let currentIndex = Array.from(options).indexOf(activeOption);
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (options.length === 0) return;
+        
+        if (activeOption) {
+          activeOption.classList.remove('bg-gray-100');
+        }
+        
+        currentIndex = currentIndex < options.length - 1 ? currentIndex + 1 : 0;
+        options[currentIndex].classList.add('bg-gray-100');
+        options[currentIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (options.length === 0) return;
+        
+        if (activeOption) {
+          activeOption.classList.remove('bg-gray-100');
+        }
+        
+        currentIndex = currentIndex > 0 ? currentIndex - 1 : options.length - 1;
+        options[currentIndex].classList.add('bg-gray-100');
+        options[currentIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeOption) {
+          selectCountry(activeOption.dataset.code, activeOption.dataset.name);
+        }
+      } else if (e.key === 'Escape') {
+        countryDropdown.classList.add('hidden');
+      }
+    });
+
+    // Handle has-application radio change
+    const hasAppRadios = document.querySelectorAll('input[name="has-application"]');
+    const passportField = document.getElementById('passport-field');
+    const passportInput = document.getElementById('passport');
+    const reasonSelect = document.getElementById('reason');
+
+    function updateReasonOptions(hasApplication) {
+      const reasons = hasApplication ? reasonsWithApp : reasonsWithoutApp;
+      const currentValue = reasonSelect.value;
+      
+      reasonSelect.innerHTML = '<option value="">Select a reason...</option>';
+      
+      reasons.forEach(reason => {
+        const option = document.createElement('option');
+        option.value = reason.value;
+        option.textContent = reason.label;
+        reasonSelect.appendChild(option);
+      });
+      
+      if (currentValue && reasonSelect.querySelector(`option[value="${currentValue}"]`)) {
+        reasonSelect.value = currentValue;
+      }
+    }
+
+    hasAppRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        const hasApplication = this.value === 'yes';
+        
+        if (hasApplication) {
+          passportField.style.display = 'block';
+          passportInput.required = true;
+        } else {
+          passportField.style.display = 'none';
+          passportInput.required = false;
+          passportInput.value = '';
+        }
+        
+        updateReasonOptions(hasApplication);
+        handleReasonChange();
+      });
+    });
+
+    // Handle reason change
+    reasonSelect.addEventListener('change', handleReasonChange);
+
+    function handleReasonChange() {
+      const selectedReason = reasonSelect.value;
+      const messageField = document.getElementById('message');
+      const messageRequired = document.getElementById('message-required');
+      
+      // Hide all conditional fields
+      document.getElementById('application-issues-alert').style.display = 'none';
+      document.getElementById('refund-warning-alert').style.display = 'none';
+      document.getElementById('invoice-fields').style.display = 'none';
+      document.getElementById('refund-fields').style.display = 'none';
+      
+      // Reset invoice and refund field requirements
+      document.querySelectorAll('#invoice-fields input, #invoice-fields select').forEach(field => {
+        field.required = false;
+      });
+      document.querySelectorAll('#refund-fields input, #refund-fields select, #refund-fields textarea').forEach(field => {
+        field.required = false;
+      });
+      
+      // Handle specific reasons
+      if (selectedReason === 'PaymentIssues') {
+        showPopup('payment-popup');
+      } else if (selectedReason === 'ApplicationIssues') {
+        document.getElementById('application-issues-alert').style.display = 'flex';
+      } else if (selectedReason === 'InvoiceRequest') {
+        document.getElementById('invoice-fields').style.display = 'block';
+        document.querySelectorAll('#invoice-fields input[required], #invoice-fields select[required]').forEach(field => {
+          field.required = true;
+        });
+        document.getElementById('invoice-address').required = true;
+        document.getElementById('invoice-zip').required = true;
+        document.getElementById('invoice-state').required = true;
+        document.getElementById('invoice-city').required = true;
+        document.getElementById('invoice-country').required = true;
+        document.getElementById('invoice-transaction-id').required = true;
+      } else if (selectedReason === 'RefundRequest') {
+        document.getElementById('refund-warning-alert').style.display = 'flex';
+        document.getElementById('refund-fields').style.display = 'block';
+        document.getElementById('refund-reason').required = true;
+        document.getElementById('refund-transaction-id').required = true;
+        messageField.required = false;
+        messageRequired.style.display = 'none';
+      } else if (selectedReason === 'VisaInformation') {
+        showPopup('faq-popup');
+      }
+      
+      // Reset message requirement for non-refund reasons
+      if (selectedReason !== 'RefundRequest') {
+        messageField.required = true;
+        messageRequired.style.display = 'inline';
+      }
+    }
+
+    // Handle refund reason change for "Other reason" specification field
+    document.getElementById('refund-reason').addEventListener('change', function() {
+      const specifyField = document.getElementById('refund-specify-field');
+      const specifyInput = document.getElementById('refund-specify');
+      
+      if (this.value === 'OtherReason') {
+        specifyField.style.display = 'block';
+        specifyInput.required = true;
+      } else {
+        specifyField.style.display = 'none';
+        specifyInput.required = false;
+        specifyInput.value = '';
+      }
+    });
+
+    // Character counter for refund specify field
+    document.getElementById('refund-specify').addEventListener('input', function() {
+      document.getElementById('refund-specify-count').textContent = this.value.length;
+    });
+    
+    // Payment keyword detection in message field
+    const messageField = document.getElementById('message');
+    let keywordDetectionShown = false;
+    
+    const paymentKeywords = [
+      'pago', 'pagos', 'payment', 'payments',
+      'tarjeta', 'tarjetas', 'card', 'cards',
+      'error', 'errors', 'fallo', 'fallos',
+      'cobro', 'cobros', 'charge', 'charges',
+      'transacción', 'transaccion', 'transaction',
+      'rechazado', 'rechazada', 'declined', 'rejected',
+      'bank', 'banco', 'credit', 'credito', 'débito', 'debito', 'debit'
+    ];
+    
+    messageField.addEventListener('input', function() {
+      const reasonValue = reasonSelect.value;
+      const messageText = this.value.toLowerCase();
+      
+      // Only trigger if reason is "Other Reason" or "General Inquiry" and keywords detected
+      const genericReasons = ['OtherReason', 'VisaInformation'];
+      
+      if (genericReasons.includes(reasonValue) && !keywordDetectionShown) {
+        const hasPaymentKeyword = paymentKeywords.some(keyword => 
+          messageText.includes(keyword)
+        );
+        
+        if (hasPaymentKeyword && messageText.length > 10) {
+          showPopup('payment-keyword-popup');
+          keywordDetectionShown = true;
+        }
+      }
+      
+      // Reset flag when reason changes
+      if (!genericReasons.includes(reasonValue)) {
+        keywordDetectionShown = false;
+      }
+    });
+    
+    // Function to change reason to Payment Issues
+    window.changeToPaymentIssue = function() {
+      reasonSelect.value = 'PaymentIssues';
+      reasonSelect.dispatchEvent(new Event('change'));
+      closePopup('payment-keyword-popup');
+      showPopup('payment-popup');
+    };
+    
+    // Reset keyword detection when reason changes
+    reasonSelect.addEventListener('change', function() {
+      keywordDetectionShown = false;
+    });
+
+    // Transaction ID validation - only latin characters and specific symbols
+    function validateTransactionId(input) {
+      input.value = input.value.replace(/[^a-zA-Z0-9,.\- ]/g, '');
+    }
+
+    document.getElementById('invoice-transaction-id').addEventListener('input', function() {
+      validateTransactionId(this);
+    });
+
+    document.getElementById('refund-transaction-id').addEventListener('input', function() {
+      validateTransactionId(this);
+    });
+
+    // Passport validation - only letters and numbers
+    passportInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
+    });
+
+    // File upload handling
+    const fileInput = document.getElementById('file-upload');
+    const fileList = document.getElementById('file-list');
+
+    fileInput.addEventListener('change', function(e) {
+      const files = Array.from(e.target.files);
+      
+      files.forEach(file => {
+        if (file.size > 5 * 1024 * 1024) {
+          // File too large, show error inline instead of alert
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'alert-warning mt-2 p-3';
+          errorDiv.textContent = `File "${file.name}" is too large. Maximum size is 5MB.`;
+          fileInput.parentElement.appendChild(errorDiv);
+          setTimeout(() => errorDiv.remove(), 5000);
+          return;
+        }
+        
+        uploadedFiles.push(file);
+        
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `
+          <span class="text-sm">${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+          <button type="button" onclick="removeFile('${file.name}')">&times;</button>
+        `;
+        
+        fileList.appendChild(fileItem);
+      });
+      
+      if (uploadedFiles.length > 0) {
+        fileList.style.display = 'block';
+      }
+      
+      fileInput.value = '';
+    });
+
+    window.removeFile = function(fileName) {
+      uploadedFiles = uploadedFiles.filter(f => f.name !== fileName);
+      
+      const fileItems = fileList.querySelectorAll('.file-item');
+      fileItems.forEach(item => {
+        if (item.textContent.includes(fileName)) {
+          item.remove();
+        }
+      });
+      
+      if (uploadedFiles.length === 0) {
+        fileList.style.display = 'none';
+      }
+    };
+
+// --- Validación del Email en tiempo real ---
+const emailField = document.getElementById('email');
+const emailErrorMsg = document.getElementById('email-error');
+const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+emailField.addEventListener('input', function() {
+    const emailValue = this.value.trim();
+    let errorMessage = "";
+
+    if (emailValue === "") {
+        errorMessage = ""; 
+    } else if (!emailValue.includes('@')) {
+        errorMessage = "The email must include an '@' symbol.";
+    } else {
+        const parts = emailValue.split('@');
+        if (parts[1] === "") {
+            errorMessage = "Domain is missing after the '@' (e.g., gmail.com).";
+        } else if (!parts[1].includes('.')) {
+            errorMessage = "The domain must include a dot (e.g., .com).";
+        } else if (!emailPattern.test(emailValue)) {
+            errorMessage = "The email format is invalid.";
+        }
+    }
+
+    if (errorMessage) {
+        this.parentElement.classList.add('field-error');
+        emailErrorMsg.textContent = errorMessage;
+        emailErrorMsg.style.display = 'block';
+    } else {
+        this.parentElement.classList.remove('field-error');
+        emailErrorMsg.style.display = 'none';
+    }
+});
+
+    // Form submission
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      let isValid = true;
+      const form = e.target;
+      const selectedReason = reasonSelect.value;
+      
+      // Clear previous errors
+      document.querySelectorAll('.error-message').forEach(msg => msg.style.display = 'none');
+      document.querySelectorAll('.field-error').forEach(field => field.classList.remove('field-error'));
+      
+      // Validate Full Name
+      const fullName = document.getElementById('full-name');
+      if (!fullName.value.trim()) {
+        fullName.parentElement.classList.add('field-error');
+        document.getElementById('full-name-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      // Validate Email
+      const email = document.getElementById('email');
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!email.value.trim()) {
+        email.parentElement.classList.add('field-error');
+        document.getElementById('email-error').textContent = 'This field is required';
+        document.getElementById('email-error').style.display = 'block';
+        isValid = false;
+      } else if (!emailRegex.test(email.value.trim())) {
+        email.parentElement.classList.add('field-error');
+        document.getElementById('email-error').textContent = 'Please enter a valid email address (e.g., user@example.com)';
+        document.getElementById('email-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      // Validate Country
+      const country = document.getElementById('country');
+      const countryCode = document.getElementById('country-code');
+      if (!country.value.trim() || !countryCode.value) {
+        country.parentElement.parentElement.classList.add('field-error');
+        document.getElementById('country-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      // Validate Has Application
+      const hasApplication = document.querySelector('input[name="has-application"]:checked');
+      if (!hasApplication) {
+        document.getElementById('has-application-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      // Validate Reason
+      if (!reasonSelect.value) {
+        reasonSelect.parentElement.classList.add('field-error');
+        document.getElementById('reason-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      // Validate Passport (if visible)
+      if (passportField.style.display !== 'none') {
+        const passport = document.getElementById('passport');
+        if (!passport.value.trim()) {
+          passport.parentElement.classList.add('field-error');
+          document.getElementById('passport-error').style.display = 'block';
+          isValid = false;
+        }
+      }
+      
+      // Validate Invoice fields if visible
+      if (selectedReason === 'InvoiceRequest') {
+        const invoiceAddress = document.getElementById('invoice-address');
+        if (!invoiceAddress.value.trim()) {
+          invoiceAddress.parentElement.classList.add('field-error');
+          document.getElementById('invoice-address-error').style.display = 'block';
+          isValid = false;
+        }
+        
+        const invoiceZip = document.getElementById('invoice-zip');
+        if (!invoiceZip.value.trim()) {
+          invoiceZip.parentElement.classList.add('field-error');
+          document.getElementById('invoice-zip-error').style.display = 'block';
+          isValid = false;
+        }
+        
+        const invoiceState = document.getElementById('invoice-state');
+        if (!invoiceState.value.trim()) {
+          invoiceState.parentElement.classList.add('field-error');
+          document.getElementById('invoice-state-error').style.display = 'block';
+          isValid = false;
+        }
+        
+        const invoiceCity = document.getElementById('invoice-city');
+        if (!invoiceCity.value.trim()) {
+          invoiceCity.parentElement.classList.add('field-error');
+          document.getElementById('invoice-city-error').style.display = 'block';
+          isValid = false;
+        }
+        
+        const invoiceCountry = document.getElementById('invoice-country');
+        if (!invoiceCountry.value) {
+          invoiceCountry.parentElement.classList.add('field-error');
+          document.getElementById('invoice-country-error').style.display = 'block';
+          isValid = false;
+        }
+        
+        const invoiceTransactionId = document.getElementById('invoice-transaction-id');
+        if (!invoiceTransactionId.value.trim()) {
+          invoiceTransactionId.parentElement.classList.add('field-error');
+          document.getElementById('invoice-transaction-id-error').style.display = 'block';
+          isValid = false;
+        }
+      }
+      
+      // Validate Refund fields if visible
+      if (selectedReason === 'RefundRequest') {
+        const refundReason = document.getElementById('refund-reason');
+        if (!refundReason.value) {
+          refundReason.parentElement.classList.add('field-error');
+          document.getElementById('refund-reason-error').style.display = 'block';
+          isValid = false;
+        }
+        
+        const refundTransactionId = document.getElementById('refund-transaction-id');
+        if (!refundTransactionId.value.trim()) {
+          refundTransactionId.parentElement.classList.add('field-error');
+          document.getElementById('refund-transaction-id-error').style.display = 'block';
+          isValid = false;
+        }
+        
+        if (refundReason.value === 'OtherReason') {
+          const refundSpecify = document.getElementById('refund-specify');
+          if (!refundSpecify.value.trim()) {
+            refundSpecify.parentElement.classList.add('field-error');
+            document.getElementById('refund-specify-error').style.display = 'block';
+            isValid = false;
+          }
+        }
+      }
+      
+      // Validate Message (only if not RefundRequest)
+      if (selectedReason !== 'RefundRequest') {
+        const message = document.getElementById('message');
+        if (!message.value.trim()) {
+          message.parentElement.classList.add('field-error');
+          document.getElementById('message-error').style.display = 'block';
+          isValid = false;
+        }
+      }
+      
+      // Validate How did you hear about us
+      const hearAboutUs = document.getElementById('hear-about-us');
+      if (!hearAboutUs.value) {
+        hearAboutUs.parentElement.classList.add('field-error');
+        document.getElementById('hear-about-us-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      // Validate Security Verification
+      const captchaCheck = document.getElementById('captcha-check');
+      if (!captchaCheck.checked) {
+        document.getElementById('captcha-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      // Validate Privacy Policy
+      const privacyPolicy = document.getElementById('privacy-policy');
+      if (!privacyPolicy.checked) {
+        document.getElementById('privacy-error').style.display = 'block';
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        // Scroll to first error
+        const firstError = document.querySelector('.field-error');
+        if (firstError) {
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const firstInput = firstError.querySelector('input, select, textarea');
+          if (firstInput) {
+            setTimeout(() => firstInput.focus(), 300);
+          }
+        } else {
+          // If no field-error class, find first visible error message
+          const firstErrorMessage = document.querySelector('.error-message[style*="display: block"]');
+          if (firstErrorMessage) {
+            firstErrorMessage.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+        return;
+      }
+      
+      // Submit the form
+      const submitButton = document.getElementById('submit-button');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+      
+      setTimeout(() => {
+        // Personalize success message based on reason
+        const successMessageContent = document.getElementById('success-message-content');
+        let customMessage = '';
+        
+        // Define SLA times for different inquiry types
+        const slaConfig = {
+          'ApplicationInformationUpdate': { hours: '24-48', message: 'El tiempo estimado de respuesta para solicitudes de actualización de aplicación es de 24–48 horas.' },
+          'CheckVisaStatus': { hours: '12-24', message: 'El tiempo estimado de respuesta para consultas de estado de aplicación es de 12–24 horas.' },
+          'PaymentIssues': { hours: '24-48', message: 'El tiempo estimado de respuesta para problemas de pago es de 24–48 horas.' },
+          'ApplicationIssues': { hours: '24-48', message: 'El tiempo estimado de respuesta para problemas de aplicación es de 24–48 horas.' },
+          'InvoiceRequest': { hours: '48-72', message: 'El tiempo estimado de respuesta para solicitudes de factura es de 48–72 horas.' },
+          'RefundRequest': { hours: '5-7 días', message: 'Su petición de reembolso ha sido recibida. El plazo de procesamiento de reembolso es de 5–7 días laborables una vez aprobado. Recibirá una notificación por email sobre el estado de su solicitud.', isRefund: true },
+          'RefundStatus': { hours: '24', message: 'El tiempo estimado de respuesta para consultas de estado de reembolso es de 24 horas.' },
+          'VisaInformation': { hours: '24-48', message: 'El tiempo estimado de respuesta para consultas generales es de 24–48 horas.' },
+          'OtherReason': { hours: '24-48', message: 'El tiempo estimado de respuesta para su consulta es de 24–48 horas.' }
+        };
+        
+        const reasonConfig = slaConfig[selectedReason] || { hours: '24', message: 'El tiempo estimado de respuesta es de 24 horas.' };
+        
+        if (reasonConfig.isRefund) {
+          customMessage = `
+            <p class="text-lg opacity-90 mb-4 font-semibold">Thank you for contacting us.</p>
+            <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-3">
+              <p class="text-base mb-2"><strong>   ️ Tiempo de procesamiento:</strong> ${reasonConfig.hours}</p>
+              <p class="text-sm">${reasonConfig.message}</p>
+            </div>
+            <p class="text-base opacity-90">Nuestro equipo revisará su solicitud y le responderá por email con los próximos pasos.</p>
+          `;
+        } else {
+          customMessage = `
+            <p class="text-lg opacity-90 mb-3">Thank you for contacting us. Our customer service team will reply within the next ${reasonConfig.hours} hours.</p>
+            <div class="bg-white bg-opacity-20 rounded-lg p-3 mb-2">
+              <p class="text-sm">${reasonConfig.message}</p>
+            </div>
+          `;
+        }
+        
+        successMessageContent.innerHTML = customMessage;
+        
+        form.classList.add('hidden');
+        document.getElementById('success-message').classList.remove('hidden');
+        
+      }, 1500);
+    });
+
+    // Close popups when clicking outside
+    document.querySelectorAll('.popup-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.style.display = 'none';
+        }
+      });
+    });
+    
+    // Rating emoji selection (for form)
+    let selectedRatingValue = null;
+    
+    window.selectRating = function(rating) {
+      selectedRatingValue = rating;
+      
+      // Remove selected class from all emojis
+      document.querySelectorAll('.rating-emoji').forEach(emoji => {
+        emoji.classList.remove('selected');
+        emoji.setAttribute('aria-checked', 'false');
+      });
+      
+      // Add selected class to clicked emoji
+      const selectedEmoji = document.querySelector(`.rating-emoji[data-rating="${rating}"]`);
+      if (selectedEmoji) {
+        selectedEmoji.classList.add('selected');
+        selectedEmoji.setAttribute('aria-checked', 'true');
+      }
+      
+      // Show thank you message for form
+      const thanksMessageForm = document.getElementById('rating-thanks-form');
+      if (thanksMessageForm) {
+        thanksMessageForm.style.opacity = '1';
+      }
+      
+      // Here you could send the rating to your backend
+      console.log('User rated:', rating);
+    };
+    
+    // Character counter for improvement suggestions in form
+    const improvementTextareaForm = document.getElementById('improvement-suggestions-form');
+    if (improvementTextareaForm) {
+      improvementTextareaForm.addEventListener('input', function() {
+        document.getElementById('improvement-count-form').textContent = this.value.length;
+      });
+    }
+    
+    // Character counter for improvement suggestions in success message
+    const improvementTextarea = document.getElementById('improvement-suggestions');
+    if (improvementTextarea) {
+      improvementTextarea.addEventListener('input', function() {
+        document.getElementById('improvement-count').textContent = this.value.length;
+      });
+    }
+    
+    // Submit feedback function
+    window.submitFeedback = function() {
+      const improvementText = document.getElementById('improvement-suggestions').value.trim();
+      const submitBtn = document.getElementById('submit-feedback-btn');
+      const feedbackSubmitted = document.getElementById('feedback-submitted');
+      
+      // Disable button temporarily
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      // Simulate submission
+      setTimeout(() => {
+        console.log('Feedback submitted:', {
+          rating: selectedRatingValue,
+          suggestions: improvementText
+        });
+        
+        // Show success message
+        feedbackSubmitted.style.opacity = '1';
+        submitBtn.textContent = 'Submitted ✓';
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+          feedbackSubmitted.style.opacity = '0';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Feedback';
+        }, 2000);
+      }, 800);
+    };
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b57c40bc53a78b2',t:'MTc2Njk5NTI0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
